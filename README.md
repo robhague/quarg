@@ -33,3 +33,4 @@ add_argument() for `<argname>`. For example:
 - [ ] Handle **kwargs by using parse_known_args() and processing leftovers
 - [ ] Add `setup.py` and so on
 - [ ] Support generation of command suites from classes
+- [ ] Support running modules with "quicli -m <modulename>"
