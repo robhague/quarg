@@ -1,8 +1,12 @@
 # Quicli: Zero-effort CLI generation.
 
-To use, add `-m quicli` to the #! line at the start of your script:
 
-    #!/usr/bin/env python -m quicli
+To use, run quicli in place of the Python intepreter, or run this at the end of your script:
+
+    quicli.main()
+
+(The `quicli.main()` function checks for `__name__ == '__main__'`, so
+there's no need to check explicitly).
 
 A subcommand is generated for each function defined in the script. Module and
 function docstrings are used to generate help text. Decorators are provided to
@@ -28,4 +32,4 @@ add_argument() for `<argname>`. For example:
 - [x] Elide subcommand if only one function is being exposed
 - [ ] Handle **kwargs by using parse_known_args() and processing leftovers
 - [ ] Add `setup.py` and so on
-
+- [ ] Support generation of command suites from classes

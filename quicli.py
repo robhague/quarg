@@ -1,17 +1,20 @@
+#!/usr/bin/env python
 """
 Quicli: Zero-effort CLI generation.
 
-To use, add "-m quicli" to the #! line at the start of your script:
+To use, run quicli in place of the Python intepreter, or run this at the end of your script:
 
-    #!/usr/bin/env python -m quicli
+    quicli.main()
 
 See the README file for more details.
 """
 
 if __name__ != '__main__':
     # Module definition
+    import argparse
     import inspect
     import re
+    import sys
 
     _arg_overrides = {}
 
@@ -115,38 +118,51 @@ if __name__ != '__main__':
         """Expose the decorated function as a subcommand."""
         commands.append(f)
         return f
+
+    # Flag to record the fact that we've already run main
+    _have_run_main = False
+
+    def main(argv=sys.argv):
+        """Parse command line arguments when the calling module is run as a
+        script. If the module is imported, do nothing."""
+        global _have_run_main
+        f = inspect.stack()[1][0]
+        if f.f_locals['__name__'] == '__main__' and not _have_run_main:
+            # Only run main() once
+            _have_run_main = True
+
+            # Record the objects created in the target file
+            target_objects = list(f.f_locals.values())
+
+            # If no commands are decorated, expose all top-level functions from the
+            # script.
+            target_commands = commands or [f for f in target_objects
+                                           if inspect.isfunction(f)
+                                           and f.__module__ == '__main__']
+
+            parser = argparse.ArgumentParser(prog=argv[0], description=__doc__)
+
+            if len(target_commands) == 1:
+                # Only one command is exposed, so don't use a subcommand
+                make_parser(commands[0], parser)
+                parser.set_defaults(_quicli_func=target_commands[0])
+            else:
+                subparsers = parser.add_subparsers(dest='_quicli_subcommand')
+                for cmd in target_commands:
+                    subparser = make_parser(cmd, subparsers.add_parser)
+                    subparser.set_defaults(_quicli_func=cmd)
+
+            args = parser.parse_args(argv[1:])
+            real_args = {k: getattr(args, k)
+                         for k in vars(args) if not k.startswith('_quicli')}
+            result = args._quicli_func(**real_args)
+            if result:
+                print result
+
 else:
     # Run as a module; generate an interface for argv[1]
     import sys
-    execfile(sys.argv[1])
-    # Record the objects created in the target file
-    target_objects = list(locals().values())
-
-    import argparse
-    import inspect
-    from quicli import make_parser, commands
-
-    # If no commands are decorated, expose all top-level functions from the
-    # script.
-    commands = commands or [f for f in target_objects
-                            if inspect.isfunction(f)
-                            and f.__module__ == '__main__']
-
-    parser = argparse.ArgumentParser(prog=sys.argv[1], description=__doc__)
-
-    if len(commands) == 1:
-        # Only one command is exposed, so don't use a subcommand
-        make_parser(commands[0], parser)
-        parser.set_defaults(_quicli_func=commands[0])
-    else:
-        subparsers = parser.add_subparsers(dest='_quicli_subcommand')
-        for cmd in commands:
-            subparser = make_parser(cmd, subparsers.add_parser)
-            subparser.set_defaults(_quicli_func=cmd)
-
-    args = parser.parse_args(sys.argv[2:])
-    real_args = {k: getattr(args, k)
-                 for k in vars(args) if not k.startswith('_quicli')}
-    result = args._quicli_func(**real_args)
-    if result:
-        print result
+    sys.argv = sys.argv[1:]
+    execfile(sys.argv[0])
+    import quicli
+    quicli.main()
