@@ -157,12 +157,12 @@ if __name__ != '__main__':
                          for k in vars(args) if not k.startswith('_quicli')}
             result = args._quicli_func(**real_args)
             if result:
-                print result
+                sys.stdout.write("{}\n".format(result))
 
 else:
     # Run as a module; generate an interface for argv[1]
     import sys
     sys.argv = sys.argv[1:]
-    execfile(sys.argv[0])
+    exec(open(sys.argv[0]).read())
     import quicli
     quicli.main()
