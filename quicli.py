@@ -10,7 +10,6 @@ is run as a script, not when imported as a module. See the README file
 for more details.
 
 """
-# Module definition
 import argparse
 import inspect
 import re
@@ -145,7 +144,7 @@ def main(argv=sys.argv):
 
         if len(target_commands) == 1:
             # Only one command is exposed, so don't use a subcommand
-            make_parser(commands[0], parser)
+            make_parser(target_commands[0], parser)
             parser.set_defaults(_quicli_func=target_commands[0])
         else:
             subparsers = parser.add_subparsers(dest='_quicli_subcommand')
@@ -156,6 +155,11 @@ def main(argv=sys.argv):
         args = parser.parse_args(argv[1:])
         real_args = {k: getattr(args, k)
                      for k in vars(args) if not k.startswith('_quicli')}
-        result = args._quicli_func(**real_args)
-        if result:
-            sys.stdout.write("{}\n".format(result))
+
+        if '_quicli_func' in args:
+            result = args._quicli_func(**real_args)
+            if result:
+                sys.stdout.write("{}\n".format(result))
+        else:
+            parser.print_usage()
+            sys.exit(1)
