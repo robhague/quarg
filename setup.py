@@ -9,6 +9,9 @@ setup(name='quicli',
       url='https://github.com/CydarLtd/quicli',
 
       py_modules=['quicli'],
+      # Use scripts instead of entry_points as the relevant
+      # functionality currently relies on using the global namespace
+      scripts=['quicli'],
 
       license='MIT',
       classifiers=[
@@ -24,4 +27,4 @@ setup(name='quicli',
       ],
       keywords='command line commandline argument arguments '+
                'option options argv parsing'
-      )
+)
