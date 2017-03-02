@@ -31,6 +31,6 @@ add_argument() for `<argname>`. For example:
 - [x] Generate single-letter short names
 - [x] Elide subcommand if only one function is being exposed
 - [ ] Handle **kwargs by using parse_known_args() and processing leftovers
-- [ ] Add `setup.py` and so on
+- [x] Add `setup.py` and so on
 - [ ] Support generation of command suites from classes
 - [ ] Support running modules with "quicli -m <modulename>"
