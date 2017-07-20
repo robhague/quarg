@@ -5,12 +5,14 @@ import os
 import subprocess
 import unittest
 
+import quicli
+
 # Allow child processes to import quicli
 os.environ['PYTHONPATH'] = "..:" + os.getenv('PYTHONPATH', '')
 
 # Find the tests directory (if the current directory, make this explicit)
 testdir = os.path.dirname(__file__) or '.'
-scriptdir = os.path.join(testdir, "scripts")
+scriptdir = os.path.join(testdir, "test_scripts")
 
 def runnable_script(scriptname):
     "Return a function that calls the name script as a subprocess."
@@ -59,6 +61,41 @@ class TestScriptRunners(unittest.TestCase):
         self.assertRegexpMatches(script('-h'), r'^usage:')
         self.assertEqual(script('sum', '1', '-y', '2').strip(), '3')
         self.assertRegexpMatches(script('div', '1', '-y', '2', expect_error=True), r'{prod,sum}')
+
+class MockParser:
+    """
+    A mock parser, allowing tests to examine the changes.
+    """
+    def __init__(self, name = None, help = None):
+        self.name = name
+        self.help = help
+        self.description = None
+        self.arguments = {}
+
+    def add_argument(self, *names, **params):
+        for name in names:
+            self.arguments[name] = params
+
+class TestFunctionProcessing(unittest.TestCase):
+
+    def test_basic_arguments(self):
+        def cmd(a, b, c=None, d=None):
+            "A test function"
+            pass
+
+        p = quicli.make_parser(cmd, MockParser)
+        self.assertEqual(p.name, "cmd")
+        self.assertEqual(p.description, "A test function")
+        self.assertEqual(set(p.arguments.keys()), set(['a', 'b', '-c', '-d']))
+        self.assertNotIn('default', p.arguments['a'])
+        self.assertEqual(p.arguments['-c']['default'], None)
+
+    def test_types(self):
+        def cmd(x=1, y="foo", z=None): pass
+        p = quicli.make_parser(cmd, MockParser)
+        self.assertEqual(p.arguments['-x']['type'], int)
+        self.assertEqual(p.arguments['-y']['type'], str)
+        self.assertNotIn('type', p.arguments['-z'])
 
 if __name__ == '__main__':
     unittest.main()
