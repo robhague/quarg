@@ -2,6 +2,7 @@
 
 import io
 import os
+import re
 import subprocess
 import unittest
 
@@ -39,8 +40,8 @@ class TestScriptRunners(unittest.TestCase):
         Test that quicli correctly exposes a single top-level function.
         """
         script = runnable_script('single_function')
-        self.assertRegexpMatches(script(expect_error=True), r'^usage:')
-        self.assertRegexpMatches(script('-h'), r'^usage:')
+        self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
+        self.assertTrue(re.search(r'^usage:', script('-h')))
         self.assertEqual(script('1', '-y', '2').strip(), '3')
 
     def test_suite(self):
@@ -48,8 +49,8 @@ class TestScriptRunners(unittest.TestCase):
         Test that quicli correctly exposes multiple top-level functions as commands.
         """
         script = runnable_script('suite')
-        self.assertRegexpMatches(script(expect_error=True), r'^usage:')
-        self.assertRegexpMatches(script('-h'), r'^usage:')
+        self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
+        self.assertTrue(re.search(r'^usage:', script('-h')))
         self.assertEqual(script('sum', '1', '-y', '2').strip(), '3')
 
     def test_command_decorator(self):
@@ -57,10 +58,10 @@ class TestScriptRunners(unittest.TestCase):
         Test that quicli correctly exposes a single decorated top-level function.
         """
         script = runnable_script('command_decorator')
-        self.assertRegexpMatches(script(expect_error=True), r'^usage:')
-        self.assertRegexpMatches(script('-h'), r'^usage:')
+        self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
+        self.assertTrue(re.search(r'^usage:', script('-h')))
         self.assertEqual(script('sum', '1', '-y', '2').strip(), '3')
-        self.assertRegexpMatches(script('div', '1', '-y', '2', expect_error=True), r'{prod,sum}')
+        self.assertTrue(re.search(r'{prod,sum}', script('div', '1', '-y', '2', expect_error=True)))
 
 class MockParser:
     """

@@ -64,6 +64,9 @@ def parse_docstring(doc):
     else:
         return ('', '', '')
 
+# getargspec is deprecated in Python 3
+_getargspec = inspect.getfullargspec if hasattr(inspect, "getfullargspec") else inspect.getargspec
+
 def make_parser(f, parser):
     help, description, arghelp = parse_docstring(inspect.getdoc(f))
     if callable(parser):
@@ -71,7 +74,7 @@ def make_parser(f, parser):
         parser = parser(f.__name__, help=help)
 
     parser.description = description
-    argspec = inspect.getargspec(f)
+    argspec = _getargspec(f)
     defaults = dict(zip(argspec.args[-len(argspec.defaults):],
                         argspec.defaults)) if argspec.defaults else {}
 
