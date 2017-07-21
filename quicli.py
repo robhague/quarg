@@ -37,7 +37,7 @@ class _arg:
     def __getattr__(self, name):
         def wrap(**kwargs):
             def decorator(f):
-                _arg_overrides[(f, name)] = kwargs
+                _arg_overrides[(f, name)] = dict(_arg_overrides.get((f,name), {}), **kwargs)
                 return f
             return decorator
         return wrap
