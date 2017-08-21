@@ -23,7 +23,7 @@ add_argument() for `<argname>`. For example:
         ...
     ```
 
-##TODO
+## TODO
 
 - [x] Optionally limit to specific functions (decorator)
 - [x] Allow overrides of argparse parameters (decorator)
