@@ -7,7 +7,10 @@
 
 import sys
 sys.argv = sys.argv[1:]
+
+__name__ = "__quarg_main__"
 exec(open(sys.argv[0]).read())
 
 import quarg
+__name__ = "__main__"
 quarg.main()

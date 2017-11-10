@@ -140,7 +140,7 @@ def main(argv=sys.argv):
         # script.
         target_commands = commands or [fn for fn in target_objects
                                        if inspect.isfunction(fn)
-                                       and fn.__module__ == '__main__']
+                                       and fn.__module__ in ('__main__', '__quarg_main__')]
 
         parser = argparse.ArgumentParser(prog=argv[0],
                                          description=f.f_locals['__doc__'])
