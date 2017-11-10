@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 """Basic maths functions.
 
-Simple use of the quicli module, with no additional
+Simple use of the quarg module, with no additional
 annotation.
 """
 
-import quicli
+import quarg
 
 def prod(x,y = 1):
     """Multiply two numbers.
@@ -19,4 +19,4 @@ def sum(x, y = 0):
     Addition was known to the ancient Babylonians."""
     print x, "+", y, "=", int(x) + y
 
-quicli.main()
+quarg.main()

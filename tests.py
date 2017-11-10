@@ -6,9 +6,9 @@ import re
 import subprocess
 import unittest
 
-import quicli
+import quarg
 
-# Allow child processes to import quicli
+# Allow child processes to import quarg
 os.environ['PYTHONPATH'] = "..:" + os.getenv('PYTHONPATH', '')
 
 # Find the tests directory (if the current directory, make this explicit)
@@ -37,7 +37,7 @@ class TestScriptRunners(unittest.TestCase):
 
     def test_single_function(self):
         """
-        Test that quicli correctly exposes a single top-level function.
+        Test that quarg correctly exposes a single top-level function.
         """
         script = runnable_script('single_function')
         self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
@@ -46,7 +46,7 @@ class TestScriptRunners(unittest.TestCase):
 
     def test_suite(self):
         """
-        Test that quicli correctly exposes multiple top-level functions as commands.
+        Test that quarg correctly exposes multiple top-level functions as commands.
         """
         script = runnable_script('suite')
         self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
@@ -55,7 +55,7 @@ class TestScriptRunners(unittest.TestCase):
 
     def test_command_decorator(self):
         """
-        Test that quicli correctly exposes a single decorated top-level function.
+        Test that quarg correctly exposes a single decorated top-level function.
         """
         script = runnable_script('command_decorator')
         self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
@@ -84,7 +84,7 @@ class TestFunctionProcessing(unittest.TestCase):
             "A test function"
             pass
 
-        p = quicli.make_parser(cmd, MockParser)
+        p = quarg.make_parser(cmd, MockParser)
         self.assertEqual(p.name, "cmd")
         self.assertEqual(p.description, "A test function")
         self.assertEqual(set(p.arguments.keys()), set(['a', 'b', '-c', '-d']))
@@ -93,20 +93,20 @@ class TestFunctionProcessing(unittest.TestCase):
 
     def test_types(self):
         def cmd(x=1, y="foo", z=None): pass
-        p = quicli.make_parser(cmd, MockParser)
+        p = quarg.make_parser(cmd, MockParser)
         self.assertEqual(p.arguments['-x']['type'], int)
         self.assertEqual(p.arguments['-y']['type'], str)
         self.assertNotIn('type', p.arguments['-z'])
 
     def test_arg_decorator(self):
 
-        @quicli.arg.x(type=int)
-        @quicli.arg.y(type="string")
-        @quicli.arg.y(help="Some help")
-        @quicli.arg.z(action="store_const", const="Z")
+        @quarg.arg.x(type=int)
+        @quarg.arg.y(type="string")
+        @quarg.arg.y(help="Some help")
+        @quarg.arg.z(action="store_const", const="Z")
         def cmd(x,y,z): pass
 
-        p = quicli.make_parser(cmd, MockParser)
+        p = quarg.make_parser(cmd, MockParser)
 
         # Single arg decorator
         self.assertEqual(p.arguments['x']['type'], int)

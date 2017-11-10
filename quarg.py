@@ -1,9 +1,9 @@
-"""Quicli: Zero-effort CLI generation.
+"""Quarg: Zero-effort CLI generation.
 
 To add basic automatic parsing to a script, import this module and add
 the following at the end:
 
-    quicli.main()
+    quarg.main()
 
 This function will process command line arguments only when the file
 is run as a script, not when imported as a module. See the README file
@@ -24,11 +24,11 @@ class _arg:
     Provide keyword arguments that will be passed to add_argument when
     generating the parser. For example:
 
-        @quicli.arg.x(type=int)
+        @quarg.arg.x(type=int)
         def cmd(x):
             ...
 
-    quicli.arg is an instance of this class. It auto-generates attributes
+    quarg.arg is an instance of this class. It auto-generates attributes
     that return functions, which in turn creates decorators to record the
     overrides for later use. Simplifications to this code would be
     appreciated.
@@ -148,19 +148,19 @@ def main(argv=sys.argv):
         if len(target_commands) == 1:
             # Only one command is exposed, so don't use a subcommand
             make_parser(target_commands[0], parser)
-            parser.set_defaults(_quicli_func=target_commands[0])
+            parser.set_defaults(_quarg_func=target_commands[0])
         else:
-            subparsers = parser.add_subparsers(dest='_quicli_subcommand')
+            subparsers = parser.add_subparsers(dest='_quarg_subcommand')
             for cmd in target_commands:
                 subparser = make_parser(cmd, subparsers.add_parser)
-                subparser.set_defaults(_quicli_func=cmd)
+                subparser.set_defaults(_quarg_func=cmd)
 
         args = parser.parse_args(argv[1:])
         real_args = {k: getattr(args, k)
-                     for k in vars(args) if not k.startswith('_quicli')}
+                     for k in vars(args) if not k.startswith('_quarg')}
 
-        if '_quicli_func' in args:
-            result = args._quicli_func(**real_args)
+        if '_quarg_func' in args:
+            result = args._quarg_func(**real_args)
             if result:
                 sys.stdout.write("{}\n".format(result))
         else:

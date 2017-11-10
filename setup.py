@@ -1,17 +1,17 @@
 from distutils.core import setup
-setup(name='quicli',
+setup(name='quarg',
       version='0.1',
       description='Effortless CLI',
       long_description='Generate a command line interface with no code, ' +
                        'and gradually add annotations for more control.',
       author='Rob Hague',
       author_email='rob.hague@cydar.co.uk',
-      url='https://github.com/CydarLtd/quicli',
+      url='https://github.com/CydarLtd/quarg',
 
-      py_modules=['quicli'],
+      py_modules=['quarg'],
       # Use scripts instead of entry_points as the relevant
       # functionality currently relies on using the global namespace
-      scripts=['quicli'],
+      scripts=['quarg'],
 
       license='MIT',
       classifiers=[

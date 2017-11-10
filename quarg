@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-# Quicli: Zero-effort CLI generation.
+# Quarg: Zero-effort CLI generation.
 #
-# To use on an unmodified script, run quicli in place of the Python
+# To use on an unmodified script, run quarg in place of the Python
 # intepreter. See the README file for more details.
 
 import sys
 sys.argv = sys.argv[1:]
 exec(open(sys.argv[0]).read())
 
-import quicli
-quicli.main()
+import quarg
+quarg.main()
