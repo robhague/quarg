@@ -45,7 +45,7 @@ arg = _arg()
 
 commands = []
 
-arghelp_re = re.compile(r'^\s*--(\w+):\s+(.*)$')
+arghelp_re = re.compile(r'^(\s*--(\w+):\s+)(.*)$')
 
 def parse_docstring(doc):
     "Parse a docstring for argument descriptions."
@@ -54,13 +54,19 @@ def parse_docstring(doc):
         help = lines[0]
         arghelp = {}
         description_lines = []
+        arg = indent = None
         for l in lines:
             m = arghelp_re.match(l.strip())
             if m:
-                arghelp[m.group(1)] = m.group(2)
+                indent, arg = len(m.group(1)), m.group(2)
+                arghelp[arg] = [m.group(3).strip()]
+            elif indent and l[:indent].isspace():
+                arghelp[arg].append(l.strip())
             else:
                 description_lines.append(l)
-        return help, '\n'.join(description_lines), arghelp
+                arg = indent = None
+        return (help, '\n'.join(description_lines),
+                {a:' '.join(l) for a,l in arghelp.items()})
     else:
         return ('', '', '')
 

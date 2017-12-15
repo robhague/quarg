@@ -4,6 +4,7 @@ import io
 import os
 import re
 import subprocess
+import textwrap
 import unittest
 
 import quarg
@@ -118,6 +119,30 @@ class TestFunctionProcessing(unittest.TestCase):
         # Single arg decorator with multiple values
         self.assertEqual(p.arguments['z']['action'], 'store_const')
         self.assertEqual(p.arguments['z']['const'], 'Z')
+
+def _pds(docstring):
+    """A utility to dedent and parse a docstring"""
+    return quarg.parse_docstring(textwrap.dedent(docstring))
+
+class TestParseDocString(unittest.TestCase):
+
+    def test_multiline_arg_descriptions(self):
+        help, desc, arghelp = _pds("""
+        help
+
+        desc1
+        desc2
+
+        --x: x1
+        --y: y1
+             y2
+        --z: z1
+        """)
+        self.assertEqual(help, "help")
+        self.assertEqual(desc, "help\n\ndesc1\ndesc2\n")
+        self.assertEqual(arghelp["x"], "x1")
+        self.assertEqual(arghelp["y"], "y1 y2")
+        self.assertEqual(arghelp["z"], "z1")
 
 if __name__ == '__main__':
     unittest.main()
