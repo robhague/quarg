@@ -7,6 +7,7 @@ setup(name='quarg',
       author='Rob Hague',
       author_email='rob.hague@cydar.co.uk',
       url='https://github.com/CydarLtd/quarg',
+      download_url = 'https://github.com/CydarLtd/quarg/archive/0.1.tar.gz',
 
       py_modules=['quarg'],
       # Use scripts instead of entry_points as the relevant
