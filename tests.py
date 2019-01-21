@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import argparse
 import io
 import os
 import re
@@ -78,6 +79,16 @@ class MockParser:
         for name in names:
             self.arguments[name] = params
 
+class ParseError(Exception): pass
+
+class TestParser(argparse.ArgumentParser):
+    """
+    A real argument parser that allows errors to be caught.
+    """
+    def error(self, message):
+        raise ParseError(message)
+
+
 class TestFunctionProcessing(unittest.TestCase):
 
     def test_basic_arguments(self):
@@ -98,6 +109,29 @@ class TestFunctionProcessing(unittest.TestCase):
         self.assertEqual(p.arguments['-x']['type'], int)
         self.assertEqual(p.arguments['-y']['type'], str)
         self.assertNotIn('type', p.arguments['-z'])
+
+    def test_flags(self):
+        "Test both positive-sense and negative-sense flags"
+        def cmd(pos=False, neg=True): pass
+        p = quarg.make_parser(cmd, TestParser())
+
+        # Check that various valid inputs set the flags correctly
+        for (args, expected_pos, expected_neg) in [
+                ([], False, True),
+                (["--pos"], True, True),
+                (["--neg"], False, False),
+                (["--pos", "--neg"], True, False),
+                (["-n", "-p"], True, False),
+                (["-n", "-p", "-n"], True, False),
+        ]:
+            parsed = p.parse_args(args)
+            self.assertEqual(parsed.pos, expected_pos)
+            self.assertEqual(parsed.neg, expected_neg)
+
+        # Check that flags do not consume arguments
+        with self.assertRaises(ParseError):
+            p.parse_args(["--pos", "1", "--neg", "0"])
+
 
     def test_arg_decorator(self):
 

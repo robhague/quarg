@@ -111,7 +111,12 @@ def make_parser(f, parser):
 
             params['default'] = d
             if d is not None:
-                params["type"] = type(d)
+                if type(d) is bool:
+                    # Boolean args are presented as a flag that
+                    # inverts the default
+                    params["action"] = "store_false" if d else "store_true"
+                else:
+                    params["type"] = type(d)
 
         if (f, a) in _arg_overrides:
             params.update(**_arg_overrides[(f, a)])
