@@ -1,4 +1,6 @@
 language: python
+dist: xenial
+script: python tests.py
 matrix:
   include:
     - name: "Python 2.7"
@@ -7,4 +9,3 @@ matrix:
       python: "3.6"
     - name: "Python 3.7"
       python: "3.7"
-script: python tests.py
