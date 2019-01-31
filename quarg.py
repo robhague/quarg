@@ -81,6 +81,7 @@ def make_parser(f, parser):
 
     parser.description = description
     argspec = _getargspec(f)
+    annotations = getattr(argspec, 'annotations', {})
     defaults = dict(zip(argspec.args[-len(argspec.defaults):],
                         argspec.defaults)) if argspec.defaults else {}
 
@@ -91,9 +92,16 @@ def make_parser(f, parser):
         if len(a) == 1:
             abbrevs.add(a)
 
-        if a in defaults:
-            d = defaults[a]
+        argtype = annotations.get(a)
+        if argtype is bool:
+            # Boolean positional parameters are exposed as flags,
+            # assuming a default of false
+            defaults[a] = False
 
+        if a in defaults:
+            d = defaults.get(a)
+
+            # Set name
             if len(a) > 1:
                 names = ['--' + a]
                 # Find a single letter abbreviation if possible
@@ -110,13 +118,15 @@ def make_parser(f, parser):
                 names = ['-' + a]
 
             params['default'] = d
-            if d is not None:
-                if type(d) is bool:
-                    # Boolean args are presented as a flag that
-                    # inverts the default
-                    params["action"] = "store_false" if d else "store_true"
-                else:
-                    params["type"] = type(d)
+            if d is not None and argtype is None:
+                argtype = type(d)
+
+        if argtype is bool:
+            # Boolean args are presented as a flag that inverts the
+            # default
+            params["action"] = "store_false" if defaults.get(a, False) else "store_true"
+        elif argtype is not None:
+            params["type"] = argtype
 
         if (f, a) in _arg_overrides:
             params.update(**_arg_overrides[(f, a)])

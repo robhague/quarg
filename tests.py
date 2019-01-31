@@ -5,6 +5,7 @@ import io
 import os
 import re
 import subprocess
+import sys
 import textwrap
 import unittest
 
@@ -30,6 +31,7 @@ def runnable_script(scriptname):
                 return output.decode('utf-8')
         except subprocess.CalledProcessError as e:
             if not expect_error:
+                print(e.output.decode('utf-8'))
                 raise e
             else:
                 return e.output.decode('utf-8')
@@ -64,6 +66,19 @@ class TestScriptRunners(unittest.TestCase):
         self.assertTrue(re.search(r'^usage:', script('-h')))
         self.assertEqual(script('sum', '1', '-y', '2').strip(), '3')
         self.assertTrue(re.search(r'{prod,sum}', script('div', '1', '-y', '2', expect_error=True)))
+
+    @unittest.skipIf(sys.version_info.major< 3,
+                     "Type annotation syntax not supported in Python 2")
+    def test_type_annotations(self):
+        """
+        Test that quarg correctly handles PEP-483 type annotations.
+        """
+        script = runnable_script('type_annotations')
+        self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
+        self.assertTrue(re.search(r'^usage:', script('-h')))
+        self.assertEqual(script('1', '-y', '2').strip(), '-1')
+        self.assertEqual(script('1', '-y', '2', '-z').strip(), '3')
+
 
 class MockParser:
     """
