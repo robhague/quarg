@@ -8,14 +8,22 @@ To use, run quarg in place of the Python intepreter, or run this at the end of y
 (The `quarg.main()` function checks for `__name__ == '__main__'`, so
 there's no need to check explicitly).
 
-A subcommand is generated for each function defined in the script. Module and
-function docstrings are used to generate help text. Decorators are provided to
-allow more fine-grained (but entirely optional) control:
+A subcommand is generated for each function defined in the
+script. Module and function docstrings are used to generate help text.
+
+Arguments with defaults are exposed as optional, named arguments, and
+the type of the command line argument is set to match that of the
+default value. In Python 3, type annotations are also used to set the
+type of arguments (overriding the type of the default value, if
+present). Boolean arguments are exposed as flags.
+
+Decorators are provided to allow more fine-grained (but entirely
+optional) control:
 
 - `@quarg.command`: Expose this function as a subcommand. If any functions are
 thus marked, only these functions are exposed.
 - `@quarg.arg.<argname>(<overrides>)`: Pass the provided keyword arguments to
-add_argument() for `<argname>`. For example:
+add_argument() for `<argname>`. These values take precedence over values (such as types) inferred automatically. For example:
 
     ```
     @quarg.arg.x(type=int)
@@ -36,7 +44,8 @@ add_argument() for `<argname>`. For example:
 - [x] Parse option help (and type?) from docstring
 - [x] Generate single-letter short names
 - [x] Elide subcommand if only one function is being exposed
+- [x] Infer types from [PEP 484](https://www.python.org/dev/peps/pep-0484/) type hints
+- [ ] Allow customization of the way output is returned
 - [ ] Handle **kwargs by using parse_known_args() and processing leftovers
-- [x] Add `setup.py` and so on
 - [ ] Support generation of command suites from classes
 - [ ] Support running modules with "quarg -m <modulename>"
