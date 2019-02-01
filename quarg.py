@@ -10,6 +10,7 @@ is run as a script, not when imported as a module. See the README file
 for more details.
 
 """
+from __future__ import print_function
 import argparse
 import inspect
 import re
@@ -181,9 +182,13 @@ def main(argv=sys.argv):
                      for k in vars(args) if not k.startswith('_quarg')}
 
         if '_quarg_func' in args:
-            result = args._quarg_func(**real_args)
-            if result:
-                sys.stdout.write("{}\n".format(result))
+            try:
+                result = args._quarg_func(**real_args)
+                if result:
+                    sys.stdout.write("{}\n".format(result))
+            except Exception as e:
+                print(str(e), file=sys.stderr)
+                sys.exit(1)
         else:
-            parser.print_usage()
-            sys.exit(1)
+            parser.print_usage(sys.stderr)
+            sys.exit(2)
