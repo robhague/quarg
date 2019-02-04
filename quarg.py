@@ -17,6 +17,7 @@ import re
 import sys
 
 _arg_overrides = {}
+_output_fn = {}
 
 class _arg:
 
@@ -143,6 +144,13 @@ def command(f):
     commands.append(f)
     return f
 
+def output(output_fn):
+    """Set the output function to be used for a command."""
+    def decorator(f):
+        _output_fn[f] = output_fn
+        return f
+    return decorator
+
 # Flag to record the fact that we've already run main
 _have_run_main = False
 
@@ -185,7 +193,7 @@ def main(argv=sys.argv):
             try:
                 result = args._quarg_func(**real_args)
                 if result:
-                    sys.stdout.write("{}\n".format(result))
+                    print(_output_fn.get(args._quarg_func,str)(result))
             except Exception as e:
                 print(str(e), file=sys.stderr)
                 sys.exit(1)

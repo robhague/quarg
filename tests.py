@@ -80,6 +80,15 @@ class TestScriptRunners(unittest.TestCase):
         self.assertEqual(script('1', '-y', '2', '-z').strip(), '3')
 
 
+    def test_output_decorator(self):
+        """
+        Test output filtering
+        """
+        script = runnable_script('shouty')
+        self.assertEqual(script('quiet', 'foo', 'bar').strip(), 'foobar')
+        self.assertEqual(script('shout', 'foo', 'bar').strip(), 'FOOBAR')
+
+
 class MockParser:
     """
     A mock parser, allowing tests to examine the changes.

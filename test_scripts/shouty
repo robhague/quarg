@@ -1,0 +1,11 @@
+#!/usr/bin/env python
+import quarg
+
+def quiet(x,y):
+    return x + y
+
+@quarg.output(lambda s: s.upper())
+def shout(x,y):
+    return x + y
+
+quarg.main()
