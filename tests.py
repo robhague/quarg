@@ -87,7 +87,7 @@ class TestScriptRunners(unittest.TestCase):
         script = runnable_script('shouty')
         self.assertEqual(script('quiet', 'foo', 'bar').strip(), 'foobar')
         self.assertEqual(script('shout', 'foo', 'bar').strip(), 'FOOBAR')
-
+        self.assertEqual(script('silent', 'foo', 'bar'), '')
 
 class MockParser:
     """

@@ -145,9 +145,14 @@ def command(f):
     return f
 
 def output(output_fn):
-    """Set the output function to be used for a command."""
+    """Set the output function to be used for a command.
+
+    `output_fn` should be a function that processes the return value
+    and returns a string. None can be passed as a special case to
+    suppress output.
+    """
     def decorator(f):
-        _output_fn[f] = output_fn
+        _output_fn[f] = output_fn if output_fn is not None else (lambda _: None)
         return f
     return decorator
 
@@ -192,8 +197,9 @@ def main(argv=sys.argv):
         if '_quarg_func' in args:
             try:
                 result = args._quarg_func(**real_args)
-                if result:
-                    print(_output_fn.get(args._quarg_func,str)(result))
+                string_result = _output_fn.get(args._quarg_func,str)(result)
+                if string_result:
+                    print(string_result)
             except Exception as e:
                 print(str(e), file=sys.stderr)
                 sys.exit(1)
