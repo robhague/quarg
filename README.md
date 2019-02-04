@@ -61,7 +61,7 @@ add_argument() for `<argname>`. These values take precedence over values (such a
 - [x] Generate single-letter short names
 - [x] Elide subcommand if only one function is being exposed
 - [x] Infer types from [PEP 484](https://www.python.org/dev/peps/pep-0484/) type hints
-- [ ] Allow customization of the way output is returned
+- [x] Allow customization of the way output is returned
 - [ ] Handle **kwargs by using parse_known_args() and processing leftovers
 - [ ] Support generation of command suites from classes
 - [ ] Support running modules with "quarg -m <modulename>"
