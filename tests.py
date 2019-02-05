@@ -38,7 +38,7 @@ def runnable_script(scriptname):
                 return e.output.decode('utf-8')
     return run
 
-@unittest.skipIf(sys.platform == 'ios', 'iOS apps cannot launch subprocesses')
+@unittest.skipIf(sys.platform == 'ios', 'iOS apps cannot launch subprocesses.')
 class TestScriptRunners(unittest.TestCase):
 
     def test_single_function(self):
