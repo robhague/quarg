@@ -178,6 +178,23 @@ class TestFunctionProcessing(unittest.TestCase):
         self.assertEqual(p.arguments['z']['action'], 'store_const')
         self.assertEqual(p.arguments['z']['const'], 'Z')
 
+    def test_output_decorator(self):
+        'Test output filtering'
+        def filtered(fn, *args, **kwargs):
+            return quarg._output_fn.get(fn,str)(fn(*args, **kwargs))
+        
+        @quarg.output(None)
+        def a(): return 'Something'
+        self.assertEqual(filtered(a), None)
+        
+        @quarg.output(lambda x: x.upper())
+        def b(s): return s+s
+        self.assertEqual(filtered(b, 'foo'), 'FOOFOO')
+        
+        @quarg.output(json.dumps)
+        def c(): return dict(x=1)
+        self.assertEqual(filtered(c),'{"x": 1}')
+
 def _pds(docstring):
     """A utility to dedent and parse a docstring"""
     return quarg.parse_docstring(textwrap.dedent(docstring))
