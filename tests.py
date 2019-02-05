@@ -197,7 +197,7 @@ class TestFunctionProcessing(unittest.TestCase):
         def c(): return dict(x=1)
         self.assertEqual(filtered(c),'{"x": 1}')
         
-        @quarg.output(json.dumps, indent='  ')
+        @quarg.output(json.dumps, indent=2)
         def d(): return dict(x=1)
         self.assertEqual(filtered(d),'{\n  "x": 1\n}')
 
