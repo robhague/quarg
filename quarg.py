@@ -12,6 +12,7 @@ for more details.
 """
 from __future__ import print_function
 import argparse
+import functools
 import inspect
 import re
 import sys
@@ -144,15 +145,17 @@ def command(f):
     commands.append(f)
     return f
 
-def output(output_fn):
+def output(output_fn, *args, **kwargs):
     """Set the output function to be used for a command.
 
     `output_fn` should be a function that processes the return value
     and returns a string. None can be passed as a special case to
     suppress output.
+    
+    Additional positional parameters and keyword arguments may be passes along with the filter function. These are passes to the filter call using functools.partial.
     """
     def decorator(f):
-        _output_fn[f] = output_fn if output_fn is not None else (lambda _: None)
+        _output_fn[f] = functools.partial(output_fn, *args, **kwargs) if output_fn is not None else (lambda _: None)
         return f
     return decorator
 

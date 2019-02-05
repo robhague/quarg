@@ -2,6 +2,7 @@
 
 import argparse
 import io
+import json
 import os
 import re
 import subprocess
@@ -37,6 +38,7 @@ def runnable_script(scriptname):
                 return e.output.decode('utf-8')
     return run
 
+@unittest.skipIf(sys.platform == 'ios', 'iOS apps cannot launch subprocesses')
 class TestScriptRunners(unittest.TestCase):
 
     def test_single_function(self):
@@ -194,6 +196,10 @@ class TestFunctionProcessing(unittest.TestCase):
         @quarg.output(json.dumps)
         def c(): return dict(x=1)
         self.assertEqual(filtered(c),'{"x": 1}')
+        
+        @quarg.output(json.dumps, indent='  ')
+        def d(): return dict(x=1)
+        self.assertEqual(filtered(d),'{\n  "x": 1\n}')
 
 def _pds(docstring):
     """A utility to dedent and parse a docstring"""

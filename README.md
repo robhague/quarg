@@ -36,7 +36,7 @@ thus marked, only these functions are exposed.
   to standard output. By default, this is passed through `str`; this
   decorator allows another function to be specified. The return value
   should be a string, or `None` to suppress output. `None` may be
-  passed as a special case to always suppress output.
+  passed as a special case to always suppress output. Additional positional parameters and keyword arguments may be passes along with the filter function. These are passes to the filter call using functools.partial
 
 - `@quarg.arg.<argname>(<overrides>)`: Pass the provided keyword arguments to
 add_argument() for `<argname>`. These values take precedence over values (such as types) inferred automatically. For example:
