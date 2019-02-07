@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+import quarg
+
+def sum(x, z: bool, y: int = 0):
+    return int(x) + y if z else int(x) - y
+
+quarg.main()

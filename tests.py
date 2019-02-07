@@ -1,9 +1,12 @@
 #!/usr/bin/env python
 
+import argparse
 import io
+import json
 import os
 import re
 import subprocess
+import sys
 import textwrap
 import unittest
 
@@ -29,11 +32,13 @@ def runnable_script(scriptname):
                 return output.decode('utf-8')
         except subprocess.CalledProcessError as e:
             if not expect_error:
+                print(e.output.decode('utf-8'))
                 raise e
             else:
                 return e.output.decode('utf-8')
     return run
 
+@unittest.skipIf(sys.platform == 'ios', 'iOS apps cannot launch subprocesses.')
 class TestScriptRunners(unittest.TestCase):
 
     def test_single_function(self):
@@ -64,6 +69,28 @@ class TestScriptRunners(unittest.TestCase):
         self.assertEqual(script('sum', '1', '-y', '2').strip(), '3')
         self.assertTrue(re.search(r'{prod,sum}', script('div', '1', '-y', '2', expect_error=True)))
 
+    @unittest.skipIf(sys.version_info.major< 3,
+                     "Type annotation syntax not supported in Python 2")
+    def test_type_annotations(self):
+        """
+        Test that quarg correctly handles PEP-483 type annotations.
+        """
+        script = runnable_script('type_annotations')
+        self.assertTrue(re.search(r'^usage:', script(expect_error=True)))
+        self.assertTrue(re.search(r'^usage:', script('-h')))
+        self.assertEqual(script('1', '-y', '2').strip(), '-1')
+        self.assertEqual(script('1', '-y', '2', '-z').strip(), '3')
+
+
+    def test_output_decorator(self):
+        """
+        Test output filtering
+        """
+        script = runnable_script('shouty')
+        self.assertEqual(script('quiet', 'foo', 'bar').strip(), 'foobar')
+        self.assertEqual(script('shout', 'foo', 'bar').strip(), 'FOOBAR')
+        self.assertEqual(script('silent', 'foo', 'bar'), '')
+
 class MockParser:
     """
     A mock parser, allowing tests to examine the changes.
@@ -77,6 +104,16 @@ class MockParser:
     def add_argument(self, *names, **params):
         for name in names:
             self.arguments[name] = params
+
+class ParseError(Exception): pass
+
+class TestParser(argparse.ArgumentParser):
+    """
+    A real argument parser that allows errors to be caught.
+    """
+    def error(self, message):
+        raise ParseError(message)
+
 
 class TestFunctionProcessing(unittest.TestCase):
 
@@ -99,6 +136,29 @@ class TestFunctionProcessing(unittest.TestCase):
         self.assertEqual(p.arguments['-y']['type'], str)
         self.assertNotIn('type', p.arguments['-z'])
 
+    def test_flags(self):
+        "Test both positive-sense and negative-sense flags"
+        def cmd(pos=False, neg=True): pass
+        p = quarg.make_parser(cmd, TestParser())
+
+        # Check that various valid inputs set the flags correctly
+        for (args, expected_pos, expected_neg) in [
+                ([], False, True),
+                (["--pos"], True, True),
+                (["--neg"], False, False),
+                (["--pos", "--neg"], True, False),
+                (["-n", "-p"], True, False),
+                (["-n", "-p", "-n"], True, False),
+        ]:
+            parsed = p.parse_args(args)
+            self.assertEqual(parsed.pos, expected_pos)
+            self.assertEqual(parsed.neg, expected_neg)
+
+        # Check that flags do not consume arguments
+        with self.assertRaises(ParseError):
+            p.parse_args(["--pos", "1", "--neg", "0"])
+
+
     def test_arg_decorator(self):
 
         @quarg.arg.x(type=int)
@@ -119,6 +179,27 @@ class TestFunctionProcessing(unittest.TestCase):
         # Single arg decorator with multiple values
         self.assertEqual(p.arguments['z']['action'], 'store_const')
         self.assertEqual(p.arguments['z']['const'], 'Z')
+
+    def test_output_decorator(self):
+        'Test output filtering'
+        def filtered(fn, *args, **kwargs):
+            return quarg._output_fn.get(fn,str)(fn(*args, **kwargs))
+        
+        @quarg.output(None)
+        def a(): return 'Something'
+        self.assertEqual(filtered(a), None)
+        
+        @quarg.output(lambda x: x.upper())
+        def b(s): return s+s
+        self.assertEqual(filtered(b, 'foo'), 'FOOFOO')
+        
+        @quarg.output(json.dumps)
+        def c(): return dict(x=1)
+        self.assertEqual(filtered(c),'{"x": 1}')
+        
+        @quarg.output(json.dumps, indent=2)
+        def d(): return dict(x=1)
+        self.assertEqual(filtered(d),'{\n  "x": 1\n}')
 
 def _pds(docstring):
     """A utility to dedent and parse a docstring"""
