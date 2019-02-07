@@ -2,7 +2,13 @@
 
 Quarg is a standalone Python library that generates command-line interfaces based on the top-level functions of a Python script. It doesn't _require_ any explicit specification of the interface, but additional information may be provided to refine the generated interface incrementally.
 
-# Usage
+# Quick Start Examples
+
+*TODO: add examples*
+
+# Detailed Guide
+
+## Invoking Quarg CLIs
 
 There are two ways to use Quarg to generate a command line interface. The first is to run the `quarg` script in place of the Python intepreter, either explicitly (`quarg _myscript.py_`) or by changing the '#!' line at the top of the script itself. Neither of these methods introduces a dependency on Quarg when importing the module, so it can be useful for providing a basic CLI to a module that isn't usually called on the command line.
 
@@ -12,7 +18,7 @@ The second is to import `quarg` and run the `main` function at the end of your s
 
 This function checks for `__name__ == '__main__'`, so there's no need to check explicitly.
 
-# The Interface
+## The Quarg API
 
 Quarg analyses the script, picks out the top-level functions, and generates an [`argparse.ArgumentParser`](https://docs.python.org/library/argparse.html) from them. This is then used to parse the command line arguments and call the relvant function. All of the usual behaviour of `argparse` is present; in particular, you can call the script with the argument `-h` to see help for the interface.
 
@@ -81,7 +87,7 @@ thus marked, only these functions are exposed.
 
 Module and function docstrings are used to generate help text. Any lines starting with '--<argname>:' (preceded by optional whitespace) are used as help for the relevant argument.
 
-## FAQ
+# FAQ
 
 - **Why _another_ argument parsing library?** Python does indeed have plenty of options for argument parsing, not least the standard library's `argparse` that `quarg` uses under the hood. However, most are focused on producing complex interfaces with extensive, explicit specifications. I wanted to explore a different area; generating the interface with a little effort as possible (in fact, zero, an aim that `quarg` has achieved) while still allowing progressive refinement.
 
