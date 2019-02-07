@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+import quarg
+
+def quiet(x,y):
+    "Uses default output processing"
+    return x + y
+
+
+@quarg.output(lambda s: s.upper())
+def shout(x,y):
+    "Puts output into upper case"
+    return x + y
+
+@quarg.output(None)
+def silent(x,y):
+    "Suppresses output"
+    return x + y
+
+quarg.main()

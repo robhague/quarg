@@ -2,6 +2,7 @@
 
 import argparse
 import io
+import json
 import os
 import re
 import subprocess
@@ -37,6 +38,7 @@ def runnable_script(scriptname):
                 return e.output.decode('utf-8')
     return run
 
+@unittest.skipIf(sys.platform == 'ios', 'iOS apps cannot launch subprocesses.')
 class TestScriptRunners(unittest.TestCase):
 
     def test_single_function(self):
@@ -79,6 +81,15 @@ class TestScriptRunners(unittest.TestCase):
         self.assertEqual(script('1', '-y', '2').strip(), '-1')
         self.assertEqual(script('1', '-y', '2', '-z').strip(), '3')
 
+
+    def test_output_decorator(self):
+        """
+        Test output filtering
+        """
+        script = runnable_script('shouty')
+        self.assertEqual(script('quiet', 'foo', 'bar').strip(), 'foobar')
+        self.assertEqual(script('shout', 'foo', 'bar').strip(), 'FOOBAR')
+        self.assertEqual(script('silent', 'foo', 'bar'), '')
 
 class MockParser:
     """
@@ -168,6 +179,27 @@ class TestFunctionProcessing(unittest.TestCase):
         # Single arg decorator with multiple values
         self.assertEqual(p.arguments['z']['action'], 'store_const')
         self.assertEqual(p.arguments['z']['const'], 'Z')
+
+    def test_output_decorator(self):
+        'Test output filtering'
+        def filtered(fn, *args, **kwargs):
+            return quarg._output_fn.get(fn,str)(fn(*args, **kwargs))
+        
+        @quarg.output(None)
+        def a(): return 'Something'
+        self.assertEqual(filtered(a), None)
+        
+        @quarg.output(lambda x: x.upper())
+        def b(s): return s+s
+        self.assertEqual(filtered(b, 'foo'), 'FOOFOO')
+        
+        @quarg.output(json.dumps)
+        def c(): return dict(x=1)
+        self.assertEqual(filtered(c),'{"x": 1}')
+        
+        @quarg.output(json.dumps, indent=2)
+        def d(): return dict(x=1)
+        self.assertEqual(filtered(d),'{\n  "x": 1\n}')
 
 def _pds(docstring):
     """A utility to dedent and parse a docstring"""

@@ -17,11 +17,27 @@ default value. In Python 3, type annotations are also used to set the
 type of arguments (overriding the type of the default value, if
 present). Boolean arguments are exposed as flags.
 
+If the command function runs to completion, the return value is
+printed to standard output (see `@quarg.output`, below), and the
+program exits with a status of 0 (success). If an exception is thrown,
+the string value of the exception (i.e., _without_ a stack trace) is
+printed to standard error, and the program exits with a status
+of 1. If there is an error parsing the command line arguments, the
+program immediately prints a usage message to standard error and exits
+with a status of 2.
+
 Decorators are provided to allow more fine-grained (but entirely
 optional) control:
 
 - `@quarg.command`: Expose this function as a subcommand. If any functions are
 thus marked, only these functions are exposed.
+
+- `@quarg.output(<filter>)`: Any return value other than None is sent
+  to standard output. By default, this is passed through `str`; this
+  decorator allows another function to be specified. The return value
+  should be a string, or `None` to suppress output. `None` may be
+  passed as a special case to always suppress output. Additional positional parameters and keyword arguments may be passes along with the filter function. These are passes to the filter call using functools.partial
+
 - `@quarg.arg.<argname>(<overrides>)`: Pass the provided keyword arguments to
 add_argument() for `<argname>`. These values take precedence over values (such as types) inferred automatically. For example:
 
@@ -45,7 +61,7 @@ add_argument() for `<argname>`. These values take precedence over values (such a
 - [x] Generate single-letter short names
 - [x] Elide subcommand if only one function is being exposed
 - [x] Infer types from [PEP 484](https://www.python.org/dev/peps/pep-0484/) type hints
-- [ ] Allow customization of the way output is returned
+- [x] Allow customization of the way output is returned
 - [ ] Handle **kwargs by using parse_known_args() and processing leftovers
 - [ ] Support generation of command suites from classes
 - [ ] Support running modules with "quarg -m <modulename>"

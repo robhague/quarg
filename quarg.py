@@ -10,12 +10,15 @@ is run as a script, not when imported as a module. See the README file
 for more details.
 
 """
+from __future__ import print_function
 import argparse
+import functools
 import inspect
 import re
 import sys
 
 _arg_overrides = {}
+_output_fn = {}
 
 class _arg:
 
@@ -142,6 +145,20 @@ def command(f):
     commands.append(f)
     return f
 
+def output(output_fn, *args, **kwargs):
+    """Set the output function to be used for a command.
+
+    `output_fn` should be a function that processes the return value
+    and returns a string. None can be passed as a special case to
+    suppress output.
+    
+    Additional positional parameters and keyword arguments may be passes along with the filter function. These are passes to the filter call using functools.partial.
+    """
+    def decorator(f):
+        _output_fn[f] = functools.partial(output_fn, *args, **kwargs) if output_fn is not None else (lambda _: None)
+        return f
+    return decorator
+
 # Flag to record the fact that we've already run main
 _have_run_main = False
 
@@ -181,9 +198,14 @@ def main(argv=sys.argv):
                      for k in vars(args) if not k.startswith('_quarg')}
 
         if '_quarg_func' in args:
-            result = args._quarg_func(**real_args)
-            if result:
-                sys.stdout.write("{}\n".format(result))
+            try:
+                result = args._quarg_func(**real_args)
+                string_result = _output_fn.get(args._quarg_func,str)(result)
+                if string_result:
+                    print(string_result)
+            except Exception as e:
+                print(str(e), file=sys.stderr)
+                sys.exit(1)
         else:
-            parser.print_usage()
-            sys.exit(1)
+            parser.print_usage(sys.stderr)
+            sys.exit(2)
