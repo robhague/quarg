@@ -4,7 +4,91 @@ Quarg is a standalone Python library that generates command-line interfaces base
 
 # Quick Start Examples
 
-*TODO: add examples*
+`quarg` generates command line interfaces from the functions that already exist in your Python script:
+
+
+```python
+# example1.py
+def repeat(x):
+    return x+x
+```
+
+```
+$ quarg example1.py Foo
+FooFoo
+```
+
+The `quarg` command can be avoided by importing `quarg` as a module and calling its `main` function in place of the usual `if __name__ == '__main__'` block:
+
+```python
+#!/usr/bin/env python3
+# example2.py
+
+import quarg
+
+def times(s, n : int):
+    return s * n
+
+quarg.main()
+```
+
+```
+$ ./example2.py Bar 3
+BarBarBar
+```
+
+Note that Python 3 type annotations can be used to convert command line arguments as desired. Here's a more complete example, including help generated from docstrings, and exposing keyword arguments as named, optional command line arguments:
+
+```python
+#!/usr/bin/env python3
+# example3.py
+import quarg
+
+def convert_to_sentence(s):
+    return s.capitalize()+"."
+
+@quarg.command # Only this function is used to generate a CLI
+def join(base, num : int, sentence: bool, separator=","):
+    """
+    Join multiple copies of a string together with a comma or similar separator.
+
+    --base: The string to repeat.
+    --num: The number of times to repeat the string.
+    --sentence: If given, return the result in sentence case.
+    --separator: An alternative separator
+    """
+    result = (separator+" ").join([base] * num)
+    if sentence:
+        result = convert_to_sentence(result)
+    return result
+
+quarg.main()
+```
+
+```
+$ example3.py --help
+usage: examples/example3.py [-h] [-s] [-S SEPARATOR] base num
+
+Join multiple copies of a string together with a comma or similar separator.
+
+positional arguments:
+  base                  The string to repeat.
+  num                   The number of times to repeat the string.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -s, --sentence        If given, return the result in sentence case.
+  -S SEPARATOR, --separator SEPARATOR
+                        An alternative separator
+
+$ example3.py baz 3
+baz, baz, baz
+
+$ example3.py wombat 3 --sentence -S \;
+Wombat; wombat; wombat.
+```
+
+Further customisation is possible if desired; see the detailed guide below. However, none is required — you can use as much or as little of `quarg` as you want, and it can grow organically as your script matures.
 
 # Detailed Guide
 
@@ -26,11 +110,11 @@ By default, a subcommand is generated for each function found. This behaviour ca
 
     def internal_function(x,y):
         ...
-    
+
     @quicli.command
     def external_one(a,b,c):
         ...
-    
+
     @quicli.command
     def external_two(p,q):
         ...
