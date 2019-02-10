@@ -175,6 +175,10 @@ Module and function docstrings are used to generate help text. Any lines startin
 
 - **Why _another_ argument parsing library?** Python does indeed have plenty of options for argument parsing, not least the standard library's `argparse` that `quarg` uses under the hood. However, most are focused on producing complex interfaces with extensive, explicit specifications. I wanted to explore a different area; generating the interface with a little effort as possible (in fact, zero, an aim that `quarg` has achieved) while still allowing progressive refinement.
 
+- **Can functions exposed as commands by `quarg` still be used from Python?** Absolutely; exposing a function to the command line via `quarg` does not change its normal functionality. One of the goals of the library is to make it easy to provide a command line interface to a module that's usually used from Python.
+
+- **Does `quarg` support Legacy Python (also known as Python 2)?** For now. Quarg started off in Python 2, and currently supports both 2 and 3. However, this situation is likely to change in the near future; in particular, it is highly unlikely that the library will still support both versions when Python 2 itself goes out of support in 2020.
+
 - **Are you a big fan of soft cheese, or Deep Space Nine?** Neither. During internal development, the module was called `quicli`, which is a far better name. Unfortunately, there's already a package with that name on PyPI, so it needed to be renamed before being made public. `quarg` was chosen as being brief, available, and still broadly reflective of the module's purpose ("QUick ARGument parsing").
 
 ## TODO
