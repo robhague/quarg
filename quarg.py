@@ -151,18 +151,28 @@ def output(output_fn, *args, **kwargs):
     `output_fn` should be a function that processes the return value
     and returns a string. None can be passed as a special case to
     suppress output.
-    
+
     Additional positional parameters and keyword arguments may be passes along with the filter function. These are passes to the filter call using functools.partial.
     """
     def decorator(f):
-        _output_fn[f] = functools.partial(output_fn, *args, **kwargs) if output_fn is not None else (lambda _: None)
+        _output_fn[f] = (functools.partial(output_fn, *args, **kwargs)
+                         if output_fn is not None
+                         else (lambda _: None))
         return f
     return decorator
+
+def _default_output(result):
+    """The default output filter
+
+    Returns the string value of the result unless it is None (in which
+    case it returns None)."""
+    return str(result) if result is not None else None
 
 # Flag to record the fact that we've already run main
 _have_run_main = False
 
 def main(argv=sys.argv):
+
     """Parse command line arguments when the calling module is run as a
     script. If the module is imported, do nothing."""
     global _have_run_main
@@ -200,7 +210,8 @@ def main(argv=sys.argv):
         if '_quarg_func' in args:
             try:
                 result = args._quarg_func(**real_args)
-                string_result = _output_fn.get(args._quarg_func,str)(result)
+                string_result = _output_fn.get(args._quarg_func,
+                                               _default_output)(result)
                 if string_result:
                     print(string_result)
             except Exception as e:
