@@ -17,7 +17,13 @@ import inspect
 import re
 import sys
 
-_arg_overrides = {}
+# Import typing if available, to allow the module to be checked
+try:
+    from typing import Any, Mapping, Text, Tuple
+except:
+    pass
+
+_arg_overrides = {} # type: Mapping[Tuple[Any,Text], Mapping[Text, Any] ]
 _output_fn = {}
 
 class _arg:
