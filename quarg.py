@@ -91,7 +91,7 @@ def make_parser(f, parser):
     abbrevs = set()
 
     for a in argspec.args:
-        names, params = [a], {}
+        names, params, named = [a], {}, False
         if len(a) == 1:
             abbrevs.add(a)
 
@@ -102,6 +102,7 @@ def make_parser(f, parser):
             defaults[a] = False
 
         if a in defaults:
+            named = True
             d = defaults.get(a)
 
             # Set name
@@ -136,6 +137,10 @@ def make_parser(f, parser):
 
         if a in arghelp:
             params['help'] = arghelp[a]
+
+        # Provide sensible behaviour for positional arguments with defaults
+        if not named and 'default' in params and 'nargs' not in params:
+            params['nargs'] = '?'
 
         parser.add_argument(*names, **params)
     return parser

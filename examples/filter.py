@@ -7,8 +7,8 @@ import sys
 import quarg
 
 # A function specifying input and output directly
-@quarg.arg.src(default=sys.stdin, nargs='?', type=argparse.FileType('r'))
-@quarg.arg.dest(default=sys.stdout, nargs='?', type=argparse.FileType('w'))
+@quarg.arg.src(default=sys.stdin, type=argparse.FileType('r'))
+@quarg.arg.dest(default=sys.stdout, type=argparse.FileType('w'))
 def shouty(src, dest):
     """
     Takes a string and makes it SHOUTY.
