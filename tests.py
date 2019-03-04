@@ -91,6 +91,22 @@ class TestScriptRunners(unittest.TestCase):
         self.assertEqual(script('shout', 'foo', 'bar').strip(), 'FOOBAR')
         self.assertEqual(script('silent', 'foo', 'bar'), '')
 
+    def test_error_output(self):
+        """
+        Test output in error cases
+        """
+        script = runnable_script('fail')
+        for args, expect_tb in [(('99',), False),
+                                (('--quarg-debug', '99'), True)]:
+            output = script(*args, expect_error=True)
+            self.assertTrue(
+                re.search('(integer )?division( or modulo)? by zero',
+                          output))
+            self.assertEqual('ZeroDivisionError' in output, expect_tb)
+            self.assertEqual(
+                bool(re.search('test_scripts/fail.*line ', output)),
+                expect_tb)
+
 class MockParser:
     """
     A mock parser, allowing tests to examine the changes.
@@ -184,19 +200,19 @@ class TestFunctionProcessing(unittest.TestCase):
         'Test output filtering'
         def filtered(fn, *args, **kwargs):
             return quarg._output_fn.get(fn,str)(fn(*args, **kwargs))
-        
+
         @quarg.output(None)
         def a(): return 'Something'
         self.assertEqual(filtered(a), None)
-        
+
         @quarg.output(lambda x: x.upper())
         def b(s): return s+s
         self.assertEqual(filtered(b, 'foo'), 'FOOFOO')
-        
+
         @quarg.output(json.dumps)
         def c(): return dict(x=1)
         self.assertEqual(filtered(c),'{"x": 1}')
-        
+
         @quarg.output(json.dumps, indent=2)
         def d(): return dict(x=1)
         self.assertEqual(filtered(d),'{\n  "x": 1\n}')
