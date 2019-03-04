@@ -19,9 +19,10 @@ import sys
 
 # Import typing if available, to allow the module to be checked
 try:
+    import typing
     from typing import Any, Mapping, Text, Tuple
 except:
-    pass
+    typing = None
 
 _arg_overrides = {} # type: Mapping[Tuple[Any,Text], Mapping[Text, Any] ]
 _output_fn = {}
@@ -82,6 +83,20 @@ def parse_docstring(doc):
 # getargspec is deprecated in Python 3
 _getargspec = inspect.getfullargspec if hasattr(inspect, "getfullargspec") else inspect.getargspec
 
+def external_argtype(t):
+    """Convert a Python type to a more useful command line one"""
+
+    if t is None:
+        return None
+
+    if typing:
+        if issubclass(t, typing.IO):
+            # Assume file arguments are for reading; this can be
+            # overridden using argparse's type= parameter
+            return argparse.FileType('r')
+
+    return t
+
 def make_parser(f, parser):
     help, description, arghelp = parse_docstring(inspect.getdoc(f))
     if callable(parser):
@@ -136,7 +151,7 @@ def make_parser(f, parser):
             # default
             params["action"] = "store_false" if defaults.get(a, False) else "store_true"
         elif argtype is not None:
-            params["type"] = argtype
+            params["type"] = external_argtype(argtype)
 
         if (f, a) in _arg_overrides:
             params.update(**_arg_overrides[(f, a)])
