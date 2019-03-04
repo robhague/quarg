@@ -24,8 +24,9 @@ def runnable_script(scriptname):
     def run(*cmd, **kwargs):
         expect_error = kwargs.pop('expect_error', False)
         try:
-            output = subprocess.check_output((os.path.join(scriptdir, scriptname),) + cmd,
-                                             stderr=subprocess.STDOUT)
+            output = subprocess.check_output((os.path.join(scriptdir,scriptname),) + cmd,
+                                             stderr=subprocess.STDOUT,
+                                             **kwargs)
             if expect_error:
                 raise Exception("Command {} unexpectedly succeeded".format(repr(cmd)))
             else:
@@ -96,9 +97,14 @@ class TestScriptRunners(unittest.TestCase):
         Test output in error cases
         """
         script = runnable_script('fail')
-        for args, expect_tb in [(('99',), False),
-                                (('--quarg-debug', '99'), True)]:
-            output = script(*args, expect_error=True)
+        for args, expect_tb, env in [
+                (('99',), False, dict()),
+                (('--quarg-debug', '99'), True, dict()),
+                (('99',), False, { 'QUARG_DEBUG': '' }),
+                (('99',), True, { 'QUARG_DEBUG': 'True'}),
+        ]:
+            output = script(*args, expect_error=True,
+                            env=dict(os.environ, **env))
             self.assertTrue(
                 re.search('(integer )?division( or modulo)? by zero',
                           output))

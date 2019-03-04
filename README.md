@@ -134,6 +134,8 @@ the corresponding command line usage is:
 
 Arguments specified with `*args` or `**kwargs` syntax are currently ignored; this may be improved in a future version.
 
+Quarg reserves long argument names beginning with `--quarg` for its own use; the corresponding parameter names should be avoided.
+
 Arguments with defaults are exposed as optional, named arguments, and
 the type of the command line argument is set to match that of the
 default value. In Python 3, type annotations are also used to set the
@@ -143,11 +145,13 @@ present). Boolean arguments are exposed as flags.
 If the command function runs to completion, the return value is
 printed to standard output (see `@quarg.output`, below), and the
 program exits with a status of 0 (success). If an exception is thrown,
-the string value of the exception (i.e., _without_ a stack trace) is
+the string value of the exception (i.e., _without_ a traceback) is
 printed to standard error, and the program exits with a status
 of 1. If there is an error parsing the command line arguments, the
 program immediately prints a usage message to standard error and exits
 with a status of 2.
+
+During development, it is often useful to output a traceback, as is the default behaviour for uncaught exceptions. This behaviour can be reinstated by passing the argument `--quarg-debug` on the command line, or setting the environment variable `QUARG_DEBUG`.
 
 Decorators are provided to allow more fine-grained (but entirely
 optional) control:
