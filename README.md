@@ -151,7 +151,7 @@ of 1. If there is an error parsing the command line arguments, the
 program immediately prints a usage message to standard error and exits
 with a status of 2.
 
-During development, it is often useful to output a traceback, as is the default behaviour for uncaught exceptions. This behaviour can be reinstated by passing the argument `--quarg-debug` on the command line, or setting the environment variable `QUARG_DEBUG`.
+During development, it is often useful to output a traceback, as is the default behaviour for uncaught exceptions. This behaviour can be reinstated by passing the argument `--quarg-debug` on the command line, or setting the environment variable `QUARG_DEBUG` to a non-empty value.
 
 Decorators are provided to allow more fine-grained (but entirely
 optional) control:

@@ -75,11 +75,6 @@ def parse_docstring(doc):
     else:
         return ('', '', '')
 
-def envstring_to_bool(value):
-    """Convert an environment variable to a boolean"""
-    return (False if value is None
-            else (value.lower() not in ["0", "", "false", "no"]))
-
 # getargspec is deprecated in Python 3
 _getargspec = inspect.getfullargspec if hasattr(inspect, "getfullargspec") else inspect.getargspec
 
@@ -193,7 +188,7 @@ def main(argv=sys.argv):
         # Add Quarg control arguments
         parser.add_argument("--quarg-debug", action="store_true",
                             dest="_quarg_debug",
-                            default=envstring_to_bool(os.getenv("QUARG_DEBUG")))
+                            default=bool(os.getenv("QUARG_DEBUG")))
 
         if len(target_commands) == 1:
             # Only one command is exposed, so don't use a subcommand
