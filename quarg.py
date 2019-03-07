@@ -19,7 +19,14 @@ import re
 import sys
 import traceback
 
-_arg_overrides = {}
+# Import typing if available, to allow the module to be checked
+try:
+    import typing
+    from typing import Any, Mapping, Text, Tuple
+except:
+    typing = None
+
+_arg_overrides = {} # type: Mapping[Tuple[Any,Text], Mapping[Text, Any] ]
 _output_fn = {}
 
 class _arg:
@@ -78,6 +85,20 @@ def parse_docstring(doc):
 # getargspec is deprecated in Python 3
 _getargspec = inspect.getfullargspec if hasattr(inspect, "getfullargspec") else inspect.getargspec
 
+def external_argtype(t):
+    """Convert a Python type to a more useful command line one"""
+
+    if t is None:
+        return None
+
+    if typing:
+        if issubclass(t, typing.IO):
+            # Assume file arguments are for reading; this can be
+            # overridden using argparse's type= parameter
+            return argparse.FileType('r')
+
+    return t
+
 def make_parser(f, parser):
     help, description, arghelp = parse_docstring(inspect.getdoc(f))
     if callable(parser):
@@ -93,7 +114,7 @@ def make_parser(f, parser):
     abbrevs = set()
 
     for a in argspec.args:
-        names, params = [a], {}
+        names, params, named = [a], {}, False
         if len(a) == 1:
             abbrevs.add(a)
 
@@ -104,6 +125,7 @@ def make_parser(f, parser):
             defaults[a] = False
 
         if a in defaults:
+            named = True
             d = defaults.get(a)
 
             # Set name
@@ -131,13 +153,17 @@ def make_parser(f, parser):
             # default
             params["action"] = "store_false" if defaults.get(a, False) else "store_true"
         elif argtype is not None:
-            params["type"] = argtype
+            params["type"] = external_argtype(argtype)
 
         if (f, a) in _arg_overrides:
             params.update(**_arg_overrides[(f, a)])
 
         if a in arghelp:
             params['help'] = arghelp[a]
+
+        # Provide sensible behaviour for positional arguments with defaults
+        if not named and 'default' in params and 'nargs' not in params:
+            params['nargs'] = '?'
 
         parser.add_argument(*names, **params)
     return parser
@@ -157,14 +183,24 @@ def output(output_fn, *args, **kwargs):
     Additional positional parameters and keyword arguments may be passes along with the filter function. These are passes to the filter call using functools.partial.
     """
     def decorator(f):
-        _output_fn[f] = functools.partial(output_fn, *args, **kwargs) if output_fn is not None else (lambda _: None)
+        _output_fn[f] = (functools.partial(output_fn, *args, **kwargs)
+                         if output_fn is not None
+                         else (lambda _: None))
         return f
     return decorator
+
+def _default_output(result):
+    """The default output filter
+
+    Returns the string value of the result unless it is None (in which
+    case it returns None)."""
+    return str(result) if result is not None else None
 
 # Flag to record the fact that we've already run main
 _have_run_main = False
 
 def main(argv=sys.argv):
+
     """Parse command line arguments when the calling module is run as a
     script. If the module is imported, do nothing."""
     global _have_run_main
@@ -207,7 +243,8 @@ def main(argv=sys.argv):
         if '_quarg_func' in args:
             try:
                 result = args._quarg_func(**real_args)
-                string_result = _output_fn.get(args._quarg_func,str)(result)
+                string_result = _output_fn.get(args._quarg_func,
+                                               _default_output)(result)
                 if string_result:
                     print(string_result)
             except Exception as e:

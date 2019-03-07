@@ -173,6 +173,8 @@ thus marked, only these functions are exposed.
         ...
     ```
 
+    Quarg will add set `nargs` to `?` for any positional parameters that override `default` and does not specify `nargs` explicitly, as `default` alone does not produce useful behaviour in that case.
+
 Module and function docstrings are used to generate help text. Any lines starting with '--<argname>:' (preceded by optional whitespace) are used as help for the relevant argument.
 
 # FAQ
