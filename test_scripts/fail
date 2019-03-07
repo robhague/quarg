@@ -1,0 +1,7 @@
+#!/usr/bin/env python
+import quarg
+
+def divide(x, y = 0):
+    return int(x) / y
+
+quarg.main()

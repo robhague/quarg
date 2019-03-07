@@ -24,8 +24,9 @@ def runnable_script(scriptname):
     def run(*cmd, **kwargs):
         expect_error = kwargs.pop('expect_error', False)
         try:
-            output = subprocess.check_output((os.path.join(scriptdir, scriptname),) + cmd,
-                                             stderr=subprocess.STDOUT)
+            output = subprocess.check_output((os.path.join(scriptdir,scriptname),) + cmd,
+                                             stderr=subprocess.STDOUT,
+                                             **kwargs)
             if expect_error:
                 raise Exception("Command {} unexpectedly succeeded".format(repr(cmd)))
             else:
@@ -90,6 +91,27 @@ class TestScriptRunners(unittest.TestCase):
         self.assertEqual(script('quiet', 'foo', 'bar').strip(), 'foobar')
         self.assertEqual(script('shout', 'foo', 'bar').strip(), 'FOOBAR')
         self.assertEqual(script('silent', 'foo', 'bar'), '')
+
+    def test_error_output(self):
+        """
+        Test output in error cases
+        """
+        script = runnable_script('fail')
+        for args, expect_tb, env in [
+                (('99',), False, dict()),
+                (('--quarg-debug', '99'), True, dict()),
+                (('99',), False, { 'QUARG_DEBUG': '' }),
+                (('99',), True, { 'QUARG_DEBUG': 'True'}),
+        ]:
+            output = script(*args, expect_error=True,
+                            env=dict(os.environ, **env))
+            self.assertTrue(
+                re.search('(integer )?division( or modulo)? by zero',
+                          output))
+            self.assertEqual('ZeroDivisionError' in output, expect_tb)
+            self.assertEqual(
+                bool(re.search('test_scripts/fail.*line ', output)),
+                expect_tb)
 
 class MockParser:
     """
@@ -184,19 +206,19 @@ class TestFunctionProcessing(unittest.TestCase):
         'Test output filtering'
         def filtered(fn, *args, **kwargs):
             return quarg._output_fn.get(fn,str)(fn(*args, **kwargs))
-        
+
         @quarg.output(None)
         def a(): return 'Something'
         self.assertEqual(filtered(a), None)
-        
+
         @quarg.output(lambda x: x.upper())
         def b(s): return s+s
         self.assertEqual(filtered(b, 'foo'), 'FOOFOO')
-        
+
         @quarg.output(json.dumps)
         def c(): return dict(x=1)
         self.assertEqual(filtered(c),'{"x": 1}')
-        
+
         @quarg.output(json.dumps, indent=2)
         def d(): return dict(x=1)
         self.assertEqual(filtered(d),'{\n  "x": 1\n}')

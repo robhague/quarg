@@ -14,8 +14,10 @@ from __future__ import print_function
 import argparse
 import functools
 import inspect
+import os
 import re
 import sys
+import traceback
 
 # Import typing if available, to allow the module to be checked
 try:
@@ -219,6 +221,11 @@ def main(argv=sys.argv):
         parser = argparse.ArgumentParser(prog=argv[0],
                                          description=f.f_locals['__doc__'])
 
+        # Add Quarg control arguments
+        parser.add_argument("--quarg-debug", action="store_true",
+                            dest="_quarg_debug",
+                            default=bool(os.getenv("QUARG_DEBUG")))
+
         if len(target_commands) == 1:
             # Only one command is exposed, so don't use a subcommand
             make_parser(target_commands[0], parser)
@@ -241,7 +248,10 @@ def main(argv=sys.argv):
                 if string_result:
                     print(string_result)
             except Exception as e:
-                print(str(e), file=sys.stderr)
+                if args._quarg_debug:
+                    traceback.print_exc(file=sys.stderr)
+                else:
+                    print(str(e), file=sys.stderr)
                 sys.exit(1)
         else:
             parser.print_usage(sys.stderr)
